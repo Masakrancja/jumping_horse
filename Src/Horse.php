@@ -9,6 +9,7 @@ class Horse
 
     private array $p = []; // current position
     private array $directions = [[-2, -1], [-1, -2], [1, -2], [2, -1], [2, 1], [1, 2], [-1, 2], [-2, 1]];
+    public array $randomNnumbers = [];
     private int $X;
     private int $Y;
 
@@ -31,6 +32,7 @@ class Horse
         $this->p[1] = $y;
         $this->addToMoves();
         $this->addToTable();
+        $this->initRandomNumbers();
     }
 
     public function drawTable(int $spaces=4): void
@@ -144,12 +146,17 @@ class Horse
     {
         if (!empty($possibleMoves)) {
             $c = count($possibleMoves);
-            $m = microtime(true);
-            $seed = (int) ((($m - (int) $m) * 1000000000) % 100000);
 
-            echo 'seed: ' . $seed . "\n";
+            if (function_exists('bcadd')) {
+                return $possibleMoves[
+                    $this->getRandomNumberExtra($c)
+                ];
 
-            srand($seed);
+            } else {
+                return $possibleMoves[
+                    $this->getRandomNumber($c)
+                ];
+            }
             return $possibleMoves[rand(0, $c - 1)];
         }
         return null;
@@ -164,6 +171,35 @@ class Horse
             }
         }
         return $result;
+    }
+
+    private function getRandomNumber(int $c): int
+    {
+        return rand(0, $c - 1);
+    }
+
+    private function getRandomNumberExtra(int $c): int
+    {
+        return $this->randomGenerator() % $c;
+    }
+
+    public function initRandomNumbers(int $len=4, int $count=1000): void
+    {
+        $bigNumber = bcsqrt('3', $len * $count);
+        echo $bigNumber. "\n";
+        $str = preg_replace('~^.*?\.(.*)$~', '$1', $bigNumber);
+        $rows = str_split($str, $len);
+        foreach ($rows as $row) {
+            $this->randomNnumbers[] = (int) $row;
+        }
+    }
+
+    public function randomGenerator(): ?int
+    {
+        if (!empty($this->randomNnumbers)) {
+            return array_pop($this->randomNnumbers);
+        }
+        return null;
     }
 
 

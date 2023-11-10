@@ -8,7 +8,7 @@ use App\Horse;
 $moves = [];
 $horse = new Horse(10, 10, 3, 3);
 
-$iterations = 100;
+$iterations = 1;
 $index = 0;
 while ($index < $iterations) {
     while (true) {
@@ -28,9 +28,15 @@ while ($index < $iterations) {
 }
 $horse->drawTable();
 
-//Horse::dump($horse->table);
+// $data = $horse->initRandomNumbers(4, 100);
+// Horse::dump($horse->randomNnumbers);
 
+// while (true) {
+//     $result = $horse->randomGenerator();
+//     if ($result === null) {
+//         break;
+//     }
+//     echo $result . "\n";
 
-
-
+// }
 
