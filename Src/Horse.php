@@ -9,7 +9,7 @@ class Horse
 
     private array $p = []; // current position
     private array $directions = [[-2, -1], [-1, -2], [1, -2], [2, -1], [2, 1], [1, 2], [-1, 2], [-2, 1]];
-    public array $randomNnumbers = [];
+    public array $randomNumbers = [];
     private int $X;
     private int $Y;
 
@@ -31,8 +31,18 @@ class Horse
         $this->p[0] = $x;
         $this->p[1] = $y;
         $this->addToMoves();
-        $this->addToTable();
+        $this->addPointToTable();
         $this->initRandomNumbers();
+    }
+
+    public function setStartPoint(int $x, int $y): void
+    {
+        $this->p[0] = $x;
+        $this->p[1] = $y;
+        $this->clearTable();
+        $this->clearMoves();
+        $this->addToMoves();
+        $this->addPointToTable();
     }
 
     public function drawTable(int $spaces=4): void
@@ -74,9 +84,29 @@ class Horse
                 echo $rightSign . "\n";
             }
         } else {
-            echo 'draw table';
-
-            echo "│ ┤ ┐ └ ┴ ┬ ├ ─ ┼ ┘ ┌";
+            ?>
+            <?php for ($j=0; $j<$this->Y; $j++): ?>
+                <div style="
+                    display: flex;
+                    background-color: DodgerBlue;
+                    flex-flow: row nowrap;
+                    justify-content: center;
+                ">
+                    <?php for ($i=0; $i<$this->X; $i++): ?>
+                        <div style="
+                            background-color: #f1f1f1;
+                            margin: 5px;
+                            padding: 5px;
+                            font-size: 24px;  
+                            flex-basis: 50px;
+                            text-align: center;  
+                        ">
+                            <?php echo $this->table[$i][$j]; ?>
+                        </div>
+                    <?php endfor; ?>
+                </div>
+            <?php endfor; ?>
+            <?php            
         }
     }
 
@@ -90,14 +120,21 @@ class Horse
             if ($p) {
                 $this->p = $p;
                 $this->addToMoves();
-                $this->addToTable();
+                $this->addPointToTable();
                 return true;
             }
         }
         return false;
     }
 
-    private function isCli(): bool
+    public function fillTable(array $moves): void
+    {
+        foreach ($moves as $key => $move) {
+            $this->table[$move[0]][$move[1]] = $key + 1;
+        }
+    }
+
+    public function isCli(): bool
     {
         return (php_sapi_name() === 'cli') ? true : false;
     }
@@ -113,12 +150,26 @@ class Horse
         return $result;
     }
 
+    private function clearTable(): void
+    {
+        for ($i=0; $i<$this->X; $i++) {
+            for ($j=0; $j<$this->Y; $j++) {
+                $this->table[$i][$j] = null;
+            }
+        }
+    }
+
     private function addToMoves(): void
     {
         array_push($this->moves, $this->p);
     }
 
-    private function addToTable(): void
+    private function clearMoves(): void
+    {
+        $this->moves = [];
+    }
+
+    private function addPointToTable(): void
     {
         $this->table[$this->p[0]][$this->p[1]] = count($this->moves);
     }
@@ -147,11 +198,10 @@ class Horse
         if (!empty($possibleMoves)) {
             $c = count($possibleMoves);
 
-            if (function_exists('bcadd')) {
+            if (!empty($this->randomNumbers)) {
                 return $possibleMoves[
                     $this->getRandomNumberExtra($c)
                 ];
-
             } else {
                 return $possibleMoves[
                     $this->getRandomNumber($c)
@@ -183,28 +233,30 @@ class Horse
         return $this->randomGenerator() % $c;
     }
 
-    public function initRandomNumbers(int $len=4, int $count=1000): void
+    private function initRandomNumbers(int $min=10000000, int $max=100000000, int $count=1000000): void
     {
-        $bigNumber = bcsqrt('3', $len * $count);
-        echo $bigNumber. "\n";
-        $str = preg_replace('~^.*?\.(.*)$~', '$1', $bigNumber);
-        $rows = str_split($str, $len);
-        foreach ($rows as $row) {
-            $this->randomNnumbers[] = (int) $row;
+        for ($i=0; $i<$count; $i++) {
+            $this->randomNumbers[] = rand($min, $max);
         }
     }
 
-    public function randomGenerator(): ?int
+    // private function initRandomNumbers(string $file='rand.txt'): void
+    // {
+    //     if (file_exists($file) !== false) {
+    //         if (($f = fopen($file, 'r')) !== false) {
+    //             while ($line = fgets($f)) {
+    //                 $this->randomNumbers[] = (int) $line; 
+    //             }
+    //             shuffle($this->randomNumbers);
+    //         }
+    //     }
+    // }
+
+    private function randomGenerator(): ?int
     {
-        if (!empty($this->randomNnumbers)) {
-            return array_pop($this->randomNnumbers);
+        if (!empty($this->randomNumbers)) {
+            return array_pop($this->randomNumbers);
         }
         return null;
     }
-
-
-
-
-
-
 }
